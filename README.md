@@ -14,8 +14,7 @@
 ```
 请帮我自动安装配置 x-downloader（X/Twitter 媒体下载工具）。
 
-我的 Cookie：auth_token=[你的值]; ct0=[你的值]
-（获取方式：浏览器登录 x.com → F12 → Application → Cookies → x.com）
+我的 Cookie：[浏览器插件导出的Cookie纯文本]
 
 请自动完成以下所有步骤，不需要我手动执行任何命令：
 1. 检测并安装 gallery-dl（pip install gallery-dl）
@@ -29,7 +28,7 @@
 总之：自动搞定一切，我只需要提供 Cookie。
 ```
 
-> 💡 **你只需要做一件事**：从浏览器复制 `auth_token` 和 `ct0` 的值，粘贴到上面的提示词里。其余所有安装、配置、测试全部由 AI 自动完成。
+> 💡 **你只需要做一件事**：从浏览器插件导出Cookie的值，粘贴到上面的提示词里。其余所有安装、配置、测试全部由 AI 自动完成。
 
 ---
 
@@ -246,11 +245,7 @@ gallery-dl "https://twitter.com/username/media"
 1. 安装 [EditThisCookie v3](https://chromewebstore.google.com/detail/editthiscookie-v3/ojfebgpkimhlhcblbalbfjblapadhbol) 扩展
 2. 浏览器登录 [x.com](https://x.com)
 3. 点击扩展图标 → 导出纯文本
-4. 粘贴使用：
-
-```bash
-python scripts/x_download.py <username> --cookies "auth_token=粘贴这里; ct0=粘贴这里"
-```
+4. 粘贴使用
 
 就这么简单！EditThisCookie 直接导出纯文本，无需转换。
 
