@@ -70,14 +70,14 @@ pip install pysocks
 
 **3. 获取 Twitter Cookie**
 
-无需导出文件。直接在浏览器中获取两个值即可：
+最简单的方式 —— 用 [EditThisCookie v3](https://chromewebstore.google.com/detail/editthiscookie-v3/ojfebgpkimhlhcblbalbfjblapadhbol) 扩展一键导出：
 
-1. 浏览器登录 [x.com](https://x.com)
-2. 按 `F12` → **Application** → **Cookies** → `https://x.com`
-3. 复制 `auth_token` 和 `ct0` 的值
-4. 直接使用：`--cookies "auth_token=xxx; ct0=yyy"`
+1. 安装 [EditThisCookie v3](https://chromewebstore.google.com/detail/editthiscookie-v3/ojfebgpkimhlhcblbalbfjblapadhbol) 扩展
+2. 浏览器登录 [x.com](https://x.com)
+3. 点击扩展图标 → 导出为纯文本（格式如 `auth_token=xxx; ct0=yyy`）
+4. 直接使用：`--cookies "粘贴导出的纯文本"`
 
-> 如果你使用 Cookie-Editor 扩展导出了 JSON 文件，也可以直接传入文件路径，脚本同样支持。
+> 脚本也支持传入 JSON 格式或 Netscape 文件路径，但纯文本是最简单的。
 
 ---
 
@@ -243,17 +243,16 @@ gallery-dl "https://twitter.com/username/media"
 
 ### 快速获取 Cookie（30秒完成）
 
-1. 浏览器登录 [x.com](https://x.com)
-2. 按 `F12` 打开开发者工具
-3. 切换到 **Application** → **Cookies** → `https://x.com`
-4. 找到 `auth_token` 和 `ct0`，复制它们的值
-5. 直接用纯文本方式传入：
+1. 安装 [EditThisCookie v3](https://chromewebstore.google.com/detail/editthiscookie-v3/ojfebgpkimhlhcblbalbfjblapadhbol) 扩展
+2. 浏览器登录 [x.com](https://x.com)
+3. 点击扩展图标 → 导出纯文本
+4. 粘贴使用：
 
 ```bash
 python scripts/x_download.py <username> --cookies "auth_token=粘贴这里; ct0=粘贴这里"
 ```
 
-就这么简单！不需要导出文件，不需要格式转换。
+就这么简单！EditThisCookie 直接导出纯文本，无需转换。
 
 ### 支持的 Cookie 输入格式
 
