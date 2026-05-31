@@ -47,6 +47,8 @@ import subprocess
 import sys
 import os
 import re
+import tempfile
+import time
 from pathlib import Path
 from datetime import datetime
 
@@ -138,15 +140,97 @@ def validate_quality(quality_string):
     )
 
 
+def parse_raw_cookies(raw_text):
+    """Parse raw cookie text into Netscape format file.
+
+    Accepts multiple formats:
+    - "auth_token=xxx; ct0=yyy" (semicolon-separated)
+    - "auth_token\txxx\nct0\tyyy" (tab/newline separated)
+    - "auth_token: xxx, ct0: yyy" (colon/comma separated)
+    - Cookie-Editor JSON string (auto-detect)
+    - Browser DevTools copy-paste format
+    Returns a temporary file path in Netscape format.
+    """
+    raw_text = raw_text.strip()
+
+    # If it looks like JSON, try to parse as JSON cookies
+    if raw_text.startswith('{') or raw_text.startswith('['):
+        try:
+            import json
+            cookies = json.loads(raw_text)
+            if isinstance(cookies, dict):
+                cookies = [cookies]
+            lines = ['# Netscape HTTP Cookie File']
+            for c in cookies:
+                name = c.get('name', '')
+                value = c.get('value', '')
+                if name:
+                    lines.append(f'.x.com\tTRUE\t/\tTRUE\t0\t{name}\t{value}')
+            tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
+            tmp.write('\n'.join(lines))
+            tmp.close()
+            return tmp.name
+        except json.JSONDecodeError:
+            pass
+
+    # Try key=value pairs
+    cookies = {}
+
+    # Pattern 1: "auth_token=xxx; ct0=yyy" or "auth_token=xxx;ct0=yyy"
+    if '=' in raw_text and (';' in raw_text or '\n' in raw_text):
+        parts = re.split(r'[;\n]', raw_text)
+        for part in parts:
+            part = part.strip()
+            if '=' in part:
+                k, v = part.split('=', 1)
+                cookies[k.strip()] = v.strip()
+
+    # Pattern 2: "auth_token\txxx\nct0\tyyy" (tab-separated)
+    if not cookies and '\t' in raw_text:
+        for line in raw_text.strip().split('\n'):
+            line = line.strip()
+            if '\t' in line:
+                parts = line.split('\t', 1)
+                if len(parts) == 2:
+                    cookies[parts[0].strip()] = parts[1].strip()
+
+    # Pattern 3: "auth_token: xxx, ct0: yyy"
+    if not cookies and ':' in raw_text and ',' in raw_text:
+        parts = re.split(r'[,\n]', raw_text)
+        for part in parts:
+            part = part.strip()
+            if ':' in part:
+                k, v = part.split(':', 1)
+                cookies[k.strip()] = v.strip()
+
+    if not cookies:
+        print("Error: Could not parse cookie text. Expected format like:", file=sys.stderr)
+        print("  auth_token=xxx; ct0=yyy", file=sys.stderr)
+        print("  or auth_token=xxx;ct0=yyy", file=sys.stderr)
+        print("  or JSON format", file=sys.stderr)
+        sys.exit(1)
+
+    # Build Netscape format
+    lines = ['# Netscape HTTP Cookie File']
+    for name, value in cookies.items():
+        if value:  # skip empty values
+            lines.append(f'.x.com\tTRUE\t/\tTRUE\t0\t{name}\t{value}')
+
+    tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
+    tmp.write('\n'.join(lines))
+    tmp.close()
+    return tmp.name
+
+
 def build_gallery_dl_command(args):
     """Build gallery-dl command from arguments."""
     cmd = ['gallery-dl']
-    
+
     # Add proxy if specified
     if args.proxy:
         cmd.extend(['--proxy', args.proxy])
-    
-    # Add cookies file
+
+    # Add cookies file (args.cookies is now always a resolved file path)
     cmd.extend(['--cookies', args.cookies])
     
     # Build filters
@@ -246,7 +330,9 @@ def main():
     parser.add_argument('--url', type=validate_url, 
                        help='Single tweet URL to download')
     
-    parser.add_argument('--cookies', required=True, help='Path to cookies file (Netscape format)')
+    parser.add_argument('--cookies', required=True,
+                        help='Cookie file path (Netscape format) or raw cookie text '
+                             '(e.g. "auth_token=xxx; ct0=yyy")')
     parser.add_argument('--proxy', type=validate_proxy, 
                        help='Proxy URL (http/https/socks4/socks5, e.g., http://127.0.0.1:8080)')
     parser.add_argument('--start-date', type=validate_date, help='Start date (YYYY-MM-DD)')
@@ -280,9 +366,17 @@ def main():
     if args.url and (args.start_date or args.end_date or args.limit or args.no_retweets):
         print("Warning: Date filters, limit, and retweet options are ignored for single tweet URLs", file=sys.stderr)
     
-    # Validate cookies file exists
-    if not os.path.exists(args.cookies):
-        print(f"Error: Cookies file not found: {args.cookies}", file=sys.stderr)
+    # Resolve cookies: file path or raw text
+    raw_cookie_file = None
+    if os.path.exists(args.cookies):
+        # It's a valid file path, use as-is
+        pass
+    elif 'auth_token' in args.cookies or '=' in args.cookies or args.cookies.startswith('{'):
+        # Looks like raw cookie text, parse it
+        raw_cookie_file = parse_raw_cookies(args.cookies)
+        args.cookies = raw_cookie_file
+    else:
+        print(f"Error: Cookies file not found and doesn't look like raw cookie text: {args.cookies}", file=sys.stderr)
         sys.exit(1)
     
     # Validate conflicting options
@@ -346,6 +440,10 @@ def main():
     except Exception as e:
         print(f"\nError: {e}", file=sys.stderr)
         sys.exit(1)
+    finally:
+        # Clean up temp cookie file if we created one
+        if raw_cookie_file and os.path.exists(raw_cookie_file):
+            os.unlink(raw_cookie_file)
 
 
 if __name__ == '__main__':

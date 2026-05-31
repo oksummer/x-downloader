@@ -7,7 +7,29 @@
   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License MIT">
 </p>
 
-一个强大的 Hermes Agent 技能，用于从 Twitter/X 下载媒体内容（图片、视频、GIF、音频）。基于 [gallery-dl](https://github.com/mikf/gallery-dl) 构建，提供更简洁的命令行接口和丰富的过滤选项。
+## 🎯 一键安装配置（复制此提示词给 AI）
+
+> **将以下提示词复制粘贴给 AI 助手，AI 会自动完成所有安装和配置，你只需提供 Cookie 即可。**
+
+```
+请帮我自动安装配置 x-downloader（X/Twitter 媒体下载工具）。
+
+我的 Cookie：auth_token=[你的值]; ct0=[你的值]
+（获取方式：浏览器登录 x.com → F12 → Application → Cookies → x.com）
+
+请自动完成以下所有步骤，不需要我手动执行任何命令：
+1. 检测并安装 gallery-dl（pip install gallery-dl）
+2. 检测并安装 pysocks（如果需要代理）
+3. 用我提供的 Cookie 生成配置
+4. 执行一次测试下载验证配置
+5. 告诉我结果和可用的命令示例
+
+如果遇到代理问题，自动配置代理。
+如果缺少 Python 环境，自动安装。
+总之：自动搞定一切，我只需要提供 Cookie。
+```
+
+> 💡 **你只需要做一件事**：从浏览器复制 `auth_token` 和 `ct0` 的值，粘贴到上面的提示词里。其余所有安装、配置、测试全部由 AI 自动完成。
 
 ---
 
@@ -30,78 +52,35 @@
 
 ## 📋 前置要求
 
-### 1. 安装 gallery-dl
+> **使用 AI 助手安装？** 直接复制上方「一键安装配置」提示词，AI 会自动检测并安装 gallery-dl、pysocks 等所有依赖，无需手动操作。
+
+### 手动安装（仅在不用 AI 时需要）
+
+**1. 安装 gallery-dl**
 
 ```bash
-# 使用 pip 安装
-pip install gallery-dl
-
-# 或者使用 pipx（推荐）
-pipx install gallery-dl
+pip install gallery-dl    # 或 pipx install gallery-dl
 ```
 
-### 2. 安装 SOCKS 代理支持（可选）
-
-如果你需要使用 SOCKS 代理，需要安装 PySocks：
+**2. 安装 SOCKS 代理支持（可选，需要代理时）**
 
 ```bash
 pip install pysocks
 ```
 
-### 3. 导出 Twitter Cookies
+**3. 获取 Twitter Cookie**
 
-由于 Twitter 需要登录才能访问大部分内容，你需要导出浏览器中的 cookies：
+无需导出文件。直接在浏览器中获取两个值即可：
 
-#### 方法一：使用 Cookie-Editor 浏览器扩展
+1. 浏览器登录 [x.com](https://x.com)
+2. 按 `F12` → **Application** → **Cookies** → `https://x.com`
+3. 复制 `auth_token` 和 `ct0` 的值
+4. 直接使用：`--cookies "auth_token=xxx; ct0=yyy"`
 
-1. 安装 [Cookie-Editor](https://chrome.google.com/webstore/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm) 扩展
-2. 登录 Twitter/X 网站
-3. 点击扩展图标
-4. 点击 **Export** → 选择 **Export as JSON**
-5. 保存为 `cookies.json`
-
-#### 方法二：使用浏览器开发者工具
-
-1. 登录 Twitter/X
-2. 按 `F12` 打开开发者工具
-3. 切换到 **Application** 标签
-4. 在左侧找到 **Cookies** → `https://x.com`
-5. 复制以下关键 cookie：
-   - `auth_token`
-   - `ct0`
-
-### 4. 转换 Cookie 格式
-
-gallery-dl 需要 **Netscape 格式**的 cookie 文件。使用以下脚本转换：
-
-```python
-#!/usr/bin/env python3
-import json
-import sys
-
-def convert_cookies_json_to_netscape(json_file, output_file):
-    with open(json_file, 'r') as f:
-        cookies = json.load(f)
-    
-    lines = ['# Netscape HTTP Cookie File']
-    for cookie in cookies:
-        domain = cookie['domain']
-        flag = 'TRUE' if domain.startswith('.') else 'FALSE'
-        path = cookie.get('path', '/')
-        secure = 'TRUE' if cookie.get('secure', False) else 'FALSE'
-        expiration = str(int(cookie.get('expirationDate', 0)))
-        name = cookie['name']
-        value = cookie['value']
-        lines.append(f'{domain}\t{flag}\t{path}\t{secure}\t{expiration}\t{name}\t{value}')
-    
-    with open(output_file, 'w') as f:
-        f.write('\n'.join(lines))
-
-# 使用方法
-convert_cookies_json_to_netscape('cookies.json', 'cookies.txt')
-```
+> 如果你使用 Cookie-Editor 扩展导出了 JSON 文件，也可以直接传入文件路径，脚本同样支持。
 
 ---
+
 
 ## 🚀 快速开始
 
@@ -116,6 +95,21 @@ python scripts/x_download.py --url https://twitter.com/user/status/123456789 --c
 
 # 下载最近 50 条推文
 python scripts/x_download.py <username> --cookies cookies.txt --limit 50
+```
+
+### 使用纯文本 Cookie（推荐）
+
+无需导出文件，直接粘贴浏览器中的 cookie 值即可：
+
+```bash
+# 直接粘贴 auth_token 和 ct0
+python scripts/x_download.py DyDy_art --cookies "auth_token=你的token值; ct0=你的ct0值"
+
+# 也可以省略空格
+python scripts/x_download.py DyDy_art --cookies "auth_token=xxx;ct0=yyy"
+
+# 或者传入 Cookie-Editor 导出的 JSON
+python scripts/x_download.py DyDy_art --cookies '[{"name":"auth_token","value":"xxx"},{"name":"ct0","value":"yyy"}]'
 ```
 
 ### 常用示例
@@ -157,7 +151,7 @@ python scripts/x_download.py creator --cookies cookies.txt --type gif,audio
   --url URL             单条推文 URL
 
 可选参数:
-  --cookies FILE        Cookie 文件路径（Netscape 格式）
+  --cookies FILE|TEXT   Cookie 文件路径或纯文本（如 "auth_token=xxx; ct0=yyy"）
   --proxy URL           代理地址（http/https/socks4/socks5）
   --start-date DATE     开始日期（YYYY-MM-DD 格式）
   --end-date DATE       结束日期（YYYY-MM-DD 格式）
@@ -247,21 +241,30 @@ gallery-dl "https://twitter.com/username/media"
 
 ## 🍪 Cookie 配置详解
 
-### 为什么需要 Cookie？
+### 快速获取 Cookie（30秒完成）
 
-Twitter/X 的大部分内容需要登录才能访问。使用 Cookie 可以：
-- 访问用户的私密推文
-- 下载高质量原图
-- 避免被限流
+1. 浏览器登录 [x.com](https://x.com)
+2. 按 `F12` 打开开发者工具
+3. 切换到 **Application** → **Cookies** → `https://x.com`
+4. 找到 `auth_token` 和 `ct0`，复制它们的值
+5. 直接用纯文本方式传入：
 
-### 必需的 Cookie 字段
+```bash
+python scripts/x_download.py <username> --cookies "auth_token=粘贴这里; ct0=粘贴这里"
+```
 
-| Cookie 名 | 说明 | 是否必需 |
-|-----------|------|----------|
-| `auth_token` | 认证令牌（长期有效） | ✅ 必需 |
-| `ct0` | CSRF 令牌（会话有效） | ✅ 必需 |
-| `twid` | 用户 ID | ⚠️ 推荐 |
-| `guest_id` | 访客标识 | ❌ 可选 |
+就这么简单！不需要导出文件，不需要格式转换。
+
+### 支持的 Cookie 输入格式
+
+| 格式 | 示例 | 说明 |
+|------|------|------|
+| 纯文本 `key=value` | `auth_token=xxx; ct0=yyy` | ⭐ 最简单，直接粘贴 |
+| JSON 数组 | `[{"name":"auth_token","value":"xxx"}]` | Cookie-Editor 导出 |
+| JSON 对象 | `{"auth_token":"xxx","ct0":"yyy"}` | 单个 cookie 对象 |
+| Netscape 文件 | `cookies.txt` 文件路径 | 传统格式，依然支持 |
+
+> 💡 只需 `auth_token` 和 `ct0` 两个值即可正常工作。
 
 ### 验证 Cookie 文件
 
