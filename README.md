@@ -12,10 +12,8 @@
 > **将以下提示词复制粘贴给 AI 助手，AI 会自动完成所有安装和配置，你只需提供 Cookie 即可。**
 
 ```
-请帮我自动安装配置 x-downloader（X/Twitter 媒体下载工具）。
-
+请帮我克隆 https://github.com/oksummer/x-downloader.git 这个skill并自动安装配置 x-downloader（X/Twitter 媒体下载工具）。
 我的 Cookie：[浏览器插件导出的Cookie纯文本]
-
 请自动完成以下所有步骤，不需要我手动执行任何命令：
 1. 检测并安装 gallery-dl（pip install gallery-dl）
 2. 检测并安装 pysocks（如果需要代理）
@@ -28,7 +26,7 @@
 总之：自动搞定一切，我只需要提供 Cookie。
 ```
 
-> 💡 **你只需要做一件事**：从浏览器插件导出Cookie的值，粘贴到上面的提示词里。其余所有安装、配置、测试全部由 AI 自动完成。
+> 💡 **你只需要做一件事**：用 EditThisCookie 扩展导出纯文本 Cookie，粘贴到上面的提示词里。其余所有安装、配置、测试全部由 AI 自动完成。
 
 ---
 
