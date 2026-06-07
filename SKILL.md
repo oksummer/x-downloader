@@ -28,6 +28,24 @@ This skill provides a comprehensive workflow for downloading media from Twitter/
 2. **Install dependencies**: `pip install pysocks` (for SOCKS proxy support)
 3. **Export cookies**: Use browser extension to export Twitter cookies in Netscape format
 
+### Optional: Hermes Tweet Route
+
+If the user is working inside Hermes Agent and wants an API-key based route
+instead of local cookies, use
+[Hermes Tweet](https://github.com/Xquik-dev/hermes-tweet) through Xquik:
+
+1. Install the plugin:
+   `hermes plugins install Xquik-dev/hermes-tweet --enable`
+2. Set `XQUIK_API_KEY` and enable action tools only for the download session:
+   `HERMES_TWEET_ENABLE_ACTIONS=true`
+3. Call `tweet_explore` with `{"query":"media download","include_actions":true}`.
+4. Call `tweet_action` on `/api/v1/x/media/download` with a body such as
+   `{"tweetUrl":"https://x.com/user/status/123456789"}` or
+   `{"tweetIds":["123456789","987654321"]}`.
+
+Keep the gallery-dl path as the local fallback when the user needs cookie-based
+timeline scraping, proxy routing, date filters, or quality-specific downloads.
+
 ### Basic Usage
 
 ```bash
